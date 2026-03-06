@@ -1,0 +1,31 @@
+{
+  "name": "prody_backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/ayushagarwalhere/prody_backend#readme",
+  "bugs": {
+    "url": "https://github.com/ayushagarwalhere/prody_backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayushagarwalhere/prody_backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "run": "npm run",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.4.2",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1",
+    "prisma": "^7.4.2"
+  }
+}

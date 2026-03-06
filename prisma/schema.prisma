@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String        @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String        @unique
+  password        String
+  isVerified      Boolean       @default(false)
+  isActive        Boolean       @default(true)
+  role            Role          @default(PARTICIPANT)
+  
+  // verification
+  verificationToken   String?   @unique
+  verificationExpiry  DateTime?
+
+  // relations
+  teamMembers     TeamMember[]  // teams this user is part of
+  createdTeams    Team[]        @relation("TeamCreator") // teams this user created (leader)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  name        String
+  startTime   DateTime?
+  endTime     DateTime?
+  minTeamSize Int       @default(1)
+  maxTeamSize Int       @default(4)
+  isActive    Boolean   @default(true)
+
+  // relations
+  teams       Team[] //teams participating in this event
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Team {
+  id        String    @id @default(cuid())
+  name      String
+  eventId   String
+  createdBy String
+  joinCode    String    @unique //using this code other team members will join this team
+
+  // relations
+  event     Event        @relation(fields: [eventId], references: [id])
+  creator   User         @relation("TeamCreator", fields: [createdBy], references: [id])
+  members   TeamMember[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([name, eventId]) // team name must be unique within an event
+}
+
+// Junction table — links Users to Teams
+model TeamMember {
+  id       String           @id @default(cuid())
+  userId   String
+  teamId   String
+  eventId  String
+  role     TeamMemberRole   @default(MEMBER)
+  joinedAt DateTime         @default(now())
+
+  // relations
+  user     User  @relation(fields: [userId], references: [id])
+  team     Team  @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId]) // user can't join the same team twice
+}
+
+enum Role {
+  PARTICIPANT
+  ADMIN
+}
+
+enum TeamMemberRole {
+  LEADER
+  MEMBER
+}
+
