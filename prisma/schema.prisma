@@ -1,97 +1,147 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum EventMode {
+  SOLO
+  TEAM
+  BOTH
+}
+
 model User {
-  id              String        @id @default(cuid())
-  firstName       String
-  lastName        String
-  email           String        @unique
-  password        String
-  isVerified      Boolean       @default(false)
-  isActive        Boolean       @default(true)
-  role            Role          @default(PARTICIPANT)
-  
-  // verification
-  verificationToken   String?   @unique
-  verificationExpiry  DateTime?
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  verified  Boolean  @default(false)
+  role      Role     @default(USER)
+  avatarUrl String
 
-  // relations
-  teamMembers     TeamMember[]  // teams this user is part of
-  createdTeams    Team[]        @relation("TeamCreator") // teams this user created (leader)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  teams                   TeamMember[]
+  ownedTeams              Team[]                  @relation("TeamAdmin")
+  registrations           EventRegistration[]
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  teamCode  String   @unique
+  adminId   String
+  submitted Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  admin         User               @relation("TeamAdmin", fields: [adminId], references: [id])
+  members       TeamMember[]
+  registrations EventRegistration[]
+  scores        Score[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId])
 }
 
 model Event {
   id          String    @id @default(cuid())
-  name        String
-  startTime   DateTime?
-  endTime     DateTime?
-  minTeamSize Int       @default(1)
-  maxTeamSize Int       @default(4)
-  isActive    Boolean   @default(true)
-
-  // relations
-  teams       Team[] //teams participating in this event
+  title       String
+  description String
+  mode        EventMode
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  registrations EventRegistration[]
+  scores        Score[]
 }
 
-model Team {
-  id        String    @id @default(cuid())
-  name      String
+model EventRegistration {
+  id        String   @id @default(cuid())
   eventId   String
-  createdBy String
-  joinCode    String    @unique //using this code other team members will join this team
+  userId    String?
+  teamId    String?
+  createdAt DateTime @default(now())
 
-  // relations
-  event     Event        @relation(fields: [eventId], references: [id])
-  creator   User         @relation("TeamCreator", fields: [createdBy], references: [id])
-  members   TeamMember[]
+  event Event @relation(fields: [eventId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+  team  Team? @relation(fields: [teamId], references: [id])
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@unique([name, eventId]) // team name must be unique within an event
+  @@unique([eventId, userId])
+  @@unique([eventId, teamId])
 }
 
-// Junction table — links Users to Teams
-model TeamMember {
-  id       String           @id @default(cuid())
-  userId   String
-  teamId   String
-  eventId  String
-  role     TeamMemberRole   @default(MEMBER)
-  joinedAt DateTime         @default(now())
+model Score {
+  id        String   @id @default(cuid())
+  eventId   String
+  teamId    String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // relations
-  user     User  @relation(fields: [userId], references: [id])
-  team     Team  @relation(fields: [teamId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
 
-  @@unique([userId, teamId]) // user can't join the same team twice
+  @@unique([eventId, teamId])
 }
 
-enum Role {
-  PARTICIPANT
-  ADMIN
+model RefreshToken {
+  id              String   @id @default(cuid())
+  token           String   @unique
+  userId          String
+  isRevoked       Boolean  @default(false)
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  replacedByToken String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
-enum TeamMemberRole {
-  LEADER
-  MEMBER
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  consumedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  consumedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
