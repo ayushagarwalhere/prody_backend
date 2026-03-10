@@ -1,8 +1,7 @@
 // Simple runtime configuration without .env validation.
 // Adjust these values directly as needed.
-
 export const appConfig = {
-  port: 3000,
+  port: Number(process.env.PORT) || 3000,
   nodeEnv: (process.env.NODE_ENV as string) || 'development',
 
   // Database URL is read by Prisma from prisma.config.ts using process.env.DATABASE_URL

@@ -63,7 +63,6 @@ export const register = async (
     },
   });
 
-  const verificationLink = `${env.APP_URL}/auth/verify-email?token=${verificationToken}`;
   const verificationLink = `${appConfig.appUrl}/auth/verify-email?token=${verificationToken}`;
   await sendVerificationEmail(user.email, verificationLink);
 
