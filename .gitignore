@@ -10,3 +10,4 @@ build
 .env.local 
 
 /src/generated/prisma
+.cursor
