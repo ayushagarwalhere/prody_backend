@@ -23,6 +23,7 @@
     "test": "echo \"No tests configured yet\" && exit 0"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.4.2",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.6",

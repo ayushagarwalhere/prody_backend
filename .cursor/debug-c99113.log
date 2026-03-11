@@ -1,0 +1,4 @@
+{"sessionId":"c99113","runId":"pre-fix","hypothesisId":"H1","location":"src/config/prisma.ts:4-8","message":"Created PrismaPg adapter","data":{"hasDatabaseUrl":true},"timestamp":1773264042408}
+{"sessionId":"c99113","runId":"pre-fix","hypothesisId":"H2","location":"src/config/prisma.ts:10-22","message":"PrismaClient constructed successfully","data":{},"timestamp":1773264042411}
+{"sessionId":"c99113","runId":"pre-fix","hypothesisId":"H1","location":"src/config/prisma.ts:4-8","message":"Created PrismaPg adapter","data":{"hasDatabaseUrl":true},"timestamp":1773264131627}
+{"sessionId":"c99113","runId":"pre-fix","hypothesisId":"H2","location":"src/config/prisma.ts:10-22","message":"PrismaClient constructed successfully","data":{},"timestamp":1773264131629}

@@ -6,8 +6,10 @@ let redisClient: Redis | null = null;
 export const getRedisClient = (): Redis => {
   if (!redisClient) {
     redisClient = new Redis(appConfig.redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 1,
       enableReadyCheck: true,
+      lazyConnect: true,
+      retryStrategy: () => null,
     });
 
     redisClient.on('error', (err) => {

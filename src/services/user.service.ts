@@ -42,7 +42,7 @@ export const getProfile = async (userId: string) => {
     throw notFound('User not found');
   }
 
-  const teams = user.teams.map((t) => ({
+  const teams = user.teams.map((t : any) => ({
     id: t.team.id,
     name: t.team.name,
     teamCode: t.team.teamCode,
@@ -51,7 +51,7 @@ export const getProfile = async (userId: string) => {
     memberCount: t.team._count.members,
   }));
 
-  const events = user.registrations.map((r) => ({
+  const events = user.registrations.map((r: any) => ({
     ...r.event,
     registrationType: r.teamId ? 'team' : 'solo',
   }));
