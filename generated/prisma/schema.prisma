@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum EventMode {
+  SOLO
+  TEAM
+  BOTH
+}
+
+model User {
+  id        String  @id @default(cuid())
+  name      String
+  username  String  @unique
+  email     String  @unique
+  password  String
+  verified  Boolean @default(false)
+  role      Role    @default(USER)
+  avatarUrl String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teams                   TeamMember[]
+  ownedTeams              Team[]                   @relation("TeamAdmin")
+  registrations           EventRegistration[]
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+}
+
+model Team {
+  id        String  @id @default(cuid())
+  name      String
+  teamCode  String  @unique
+  adminId   String
+  submitted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  admin         User                @relation("TeamAdmin", fields: [adminId], references: [id])
+  members       TeamMember[]
+  registrations EventRegistration[]
+  scores        Score[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  mode        EventMode
+  abstract    String?
+  isLive      Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrations EventRegistration[]
+  scores        Score[]
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String?
+  teamId    String?
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+  team  Team? @relation(fields: [teamId], references: [id])
+
+  @@unique([eventId, userId])
+  @@unique([eventId, teamId])
+}
+
+model Score {
+  id        String   @id @default(cuid())
+  eventId   String
+  teamId    String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
+
+  @@unique([eventId, teamId])
+}
+
+model RefreshToken {
+  id              String   @id @default(cuid())
+  token           String   @unique
+  userId          String
+  isRevoked       Boolean  @default(false)
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  replacedByToken String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  consumedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  consumedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
