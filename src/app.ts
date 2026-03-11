@@ -29,6 +29,10 @@ app.use('/teams', teamRoutes);
 app.use('/leaderboard', leaderboardRoutes);
 app.use('/admin', adminRoutes);
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello World Prody-26' });
+});
+
 app.use((_req, res) => {
   res.status(404).json({ message: 'Not found' });
 });
