@@ -5,11 +5,12 @@ import { prisma } from '@config/prisma';
 import { appConfig } from '@config/appConfig';
 import { getRandomAvatarUrl } from '@utils/avatars';
 import { sendVerificationEmail, sendPasswordResetEmail } from './email.service';
-import type { Role } from '@prisma/client';
 
-const SALT_ROUNDS = 12;
-const VERIFICATION_EXPIRY_HOURS = 24;
-const PASSWORD_RESET_EXPIRY_MINUTES = 60;
+const SALT_ROUNDS = 10;
+const VERIFICATION_EXPIRY_HOURS = 1;
+const PASSWORD_RESET_EXPIRY_MINUTES = 15;
+
+type Role = 'USER' | 'ADMIN';
 
 type HttpError = Error & { statusCode?: number };
 
@@ -38,7 +39,9 @@ const generateRefreshToken = () =>
 export const register = async (
   email: string,
   password: string,
-): Promise<{ user: { id: string; email: string; verified: boolean }; message: string }> => {
+  name: string,
+  username: string,
+): Promise<{ user: { id: string; email: string; name: string; username: string; verified: boolean }; message: string }> => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw badRequest('Email already registered');
@@ -53,6 +56,8 @@ export const register = async (
     data: {
       email,
       password: hashedPassword,
+      name,
+      username,
       avatarUrl: getRandomAvatarUrl(),
       emailVerificationTokens: {
         create: {
@@ -67,18 +72,18 @@ export const register = async (
   await sendVerificationEmail(user.email, verificationLink);
 
   return {
-    user: { id: user.id, email: user.email, verified: user.verified },
+    user: { id: user.id, email: user.email, name: user.name, username: user.username, verified: user.verified },
     message: 'Registration successful. Please check your email to verify your account.',
   };
 };
 
 export const login = async (
-  email: string,
+  username: string,
   password: string,
-): Promise<TokenPair & { user: { id: string; email: string; role: Role } }> => {
-  const user = await prisma.user.findUnique({ where: { email } });
+): Promise<TokenPair & { user: { id: string; username: string; role: Role } }> => {
+  const user = await prisma.user.findUnique({ where: { username } });
   if (!user) {
-    throw unauthorized('Invalid email or password');
+    throw unauthorized('Invalid username or password');
   }
   if (!user.verified) {
     throw badRequest('Please verify your email before logging in');
@@ -86,7 +91,7 @@ export const login = async (
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    throw unauthorized('Invalid email or password');
+    throw unauthorized('Invalid username or password');
   }
 
   const accessToken = generateAccessToken(user.id, user.email, user.role);
@@ -107,7 +112,7 @@ export const login = async (
   return {
     accessToken,
     refreshToken,
-    user: { id: user.id, email: user.email, role: user.role },
+    user: { id: user.id, username: user.username, role: user.role },
   };
 };
 

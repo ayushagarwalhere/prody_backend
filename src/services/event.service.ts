@@ -35,12 +35,16 @@ export const createEvent = async (data: {
   title: string;
   description: string;
   mode: EventMode;
+  abstract?: string | null;
+  isLive?: boolean;
 }) => {
   return prisma.event.create({
     data: {
       title: data.title,
       description: data.description,
       mode: data.mode,
+      abstract: data.abstract ?? null,
+      isLive: data.isLive ?? false,
     },
   });
 };
@@ -53,6 +57,10 @@ export const registerForEvent = async (
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) {
     throw notFound('Event not found');
+  }
+
+  if (!event.isLive) {
+    throw badRequest('Registrations are currently closed for this event');
   }
 
   if (teamId) {

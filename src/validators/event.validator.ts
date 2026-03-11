@@ -6,6 +6,8 @@ export const createEventSchema = z.object({
     title: z.string().min(1),
     description: z.string(),
     mode: z.nativeEnum(EventMode),
+    abstract: z.string().url().optional(),
+    isLive: z.boolean().optional(),
   }),
 });
 

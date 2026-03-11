@@ -19,6 +19,8 @@ enum EventMode {
 
 model User {
   id        String   @id @default(cuid())
+  name      String
+  username  String
   email     String   @unique
   password  String
   verified  Boolean  @default(false)
@@ -69,6 +71,8 @@ model Event {
   title       String
   description String
   mode        EventMode
+  abstract    String?
+  isLive      Boolean   @default(false)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

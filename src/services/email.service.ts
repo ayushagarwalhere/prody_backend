@@ -10,11 +10,11 @@ export const sendVerificationEmail = async (
     await resend.emails.send({
       from: appConfig.emailFrom,
       to: [to],
-      subject: 'Verify your email',
+      subject: `Verify your email for Prody'26`,
       html: `
-        <p>Please verify your email by clicking the link below:</p>
+        <p>Please verify your email for Prody-26 by clicking the link below:</p>
         <p><a href="${verificationLink}">${verificationLink}</a></p>
-        <p>This link expires in 24 hours.</p>
+        <p>This link expires in an hours. Do register before that!</p>
       `,
     });
   } catch (err) {

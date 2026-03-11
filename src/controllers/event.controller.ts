@@ -34,12 +34,20 @@ export const createEvent = async (
   next: NextFunction,
 ) => {
   try {
-    const { title, description, mode } = req.body as {
+    const { title, description, mode, abstract, isLive } = req.body as {
       title: string;
       description: string;
       mode: 'SOLO' | 'TEAM' | 'BOTH';
+      abstract?: string | null;
+      isLive?: boolean;
     };
-    const event = await eventService.createEvent({ title, description, mode });
+    const event = await eventService.createEvent({
+      title,
+      description,
+      mode,
+      abstract,
+      isLive,
+    });
     res.status(201).json(event);
   } catch (err) {
     next(err);

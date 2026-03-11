@@ -8,8 +8,8 @@ export const register = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, password } = req.body as { email: string; password: string };
-    const result = await authService.register(email, password);
+    const { email, password, name, username } = req.body as { email: string; password: string; name: string; username: string };
+    const result = await authService.register(email, password, name, username);
     res.status(201).json(result);
   } catch (err) {
     next(err);
@@ -22,8 +22,8 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const { email, password } = req.body as { email: string; password: string };
-    const result = await authService.login(email, password);
+    const { username, password } = req.body as { username: string; password: string };
+    const result = await authService.login(username, password);
     setAuthCookies(res, result.accessToken, result.refreshToken);
     res.status(200).json({ user: result.user });
   } catch (err) {
@@ -84,7 +84,7 @@ export const forgotPassword = async (
     const { email } = req.body as { email: string };
     await authService.forgotPassword(email);
     res.status(200).json({
-      message: 'If an account exists with this email, you will receive a password reset link.',
+      message: 'You will recieve an email with a link to reset your password.',
     });
   } catch (err) {
     next(err);
