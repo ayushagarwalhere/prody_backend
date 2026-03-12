@@ -17,7 +17,7 @@ export const appConfig = {
   cookieSecure: process.env.COOKIE_SECURE === 'true',
 
   resendApiKey: process.env.RESEND_API_KEY || 'dev-resend-key-change-me',
-  emailFrom: process.env.EMAIL_FROM || 'no-reply@example.com',
+  emailFrom: process.env.EMAIL_FROM || 'onboarding@resend.dev',
 
   appUrl: process.env.APP_URL || 'http://localhost:3000',
 };

@@ -67,7 +67,7 @@ export const verifyEmail = async (
   next: NextFunction,
 ) => {
   try {
-    const { token } = req.query as { token: string };
+    const { token } = res.locals.query as { token: string };
     await authService.verifyEmail(token);
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (err) {

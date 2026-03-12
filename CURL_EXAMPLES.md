@@ -10,7 +10,7 @@ Base URL: `http://localhost:3000`
 ```bash
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}'
+  -d '{"email":"user@example.com","password":"password123","name":"test","username":"testuser"}'
 ```
 
 ### Verify email (open in browser or)

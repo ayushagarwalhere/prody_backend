@@ -9,16 +9,16 @@ type RequestSchemas = {
 
 export const validateRequest =
   (schemas: RequestSchemas) =>
-  (req: Request, _res: Response, next: NextFunction) => {
+  (req: Request, res: Response, next: NextFunction) => {
     try {
       if (schemas.body) {
         req.body = schemas.body.parse(req.body);
       }
       if (schemas.query) {
-        req.query = schemas.query.parse(req.query);
+        res.locals.query = schemas.query.parse(req.query);
       }
       if (schemas.params) {
-        req.params = schemas.params.parse(req.params);
+        res.locals.params = schemas.params.parse(req.params);
       }
       next();
     } catch (err) {
