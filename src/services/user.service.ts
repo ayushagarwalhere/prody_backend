@@ -16,6 +16,8 @@ export const getProfile = async (userId: string) => {
     select: {
       id: true,
       email: true,
+      username: true,
+      name: true,
       verified: true,
       role: true,
       avatarUrl: true,
@@ -42,9 +44,10 @@ export const getProfile = async (userId: string) => {
     throw notFound('User not found');
   }
 
-  const teams = user.teams.map((t : any) => ({
+  const teams = user.teams.map((t: any) => ({
     id: t.team.id,
     name: t.team.name,
+    team: t.team.members,
     teamCode: t.team.teamCode,
     isAdmin: t.team.adminId === userId,
     submitted: t.team.submitted,
@@ -59,6 +62,8 @@ export const getProfile = async (userId: string) => {
   return {
     id: user.id,
     email: user.email,
+    name: user.name,
+    username: user.username,
     verified: user.verified,
     role: user.role,
     avatarUrl: user.avatarUrl,

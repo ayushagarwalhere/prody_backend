@@ -19,6 +19,6 @@ export const appConfig = {
   resendApiKey: process.env.RESEND_API_KEY || 'dev-resend-key-change-me',
   emailFrom: process.env.EMAIL_FROM || 'onboarding@resend.dev',
 
-  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  appUrl: process.env.APP_URL || 'http://localhost:3001' || 'http://localhost:3000',
 };
 

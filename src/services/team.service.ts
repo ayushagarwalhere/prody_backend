@@ -36,36 +36,58 @@ const generateTeamCode = async (): Promise<string> => {
   return code;
 };
 
-export const createTeam = async (userId: string, name: string) => {
+export const createTeam = async (userId: string, name: string, eventId: string) => {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+  });
+
+  if (!event) {
+    throw new Error("Event not found");
+  }
+
   const teamCode = await generateTeamCode();
+
   const team = await prisma.team.create({
     data: {
       name,
       teamCode,
       adminId: userId,
+      eventId,
       members: {
         create: { userId },
       },
     },
     include: { members: true },
   });
+
   return team;
 };
 
 export const joinTeam = async (userId: string, teamCode: string) => {
   const team = await prisma.team.findUnique({
     where: { teamCode: teamCode.toUpperCase() },
-    include: { members: true },
+    include: { 
+      members: true,
+      event: true
+    },
   });
   if (!team) {
     throw notFound('Team not found');
   }
-  if (team.submitted) {
-    throw badRequest('Cannot join a submitted team');
+  if (team.registered) {
+    throw badRequest('Team already registered the event. You cannot join');
   }
   const alreadyMember = team.members.some((m) => m.userId === userId);
   if (alreadyMember) {
     throw badRequest('Already a member of this team');
+  }
+
+  // Check team size constraints
+  if (team.event) {
+    const currentSize = team.members.length;
+    if (currentSize >= team.event.maxTeamSize) {
+      throw badRequest(`Team is full. Maximum team size is ${team.event.maxTeamSize}`);
+    }
   }
 
   await prisma.teamMember.create({
@@ -91,8 +113,8 @@ export const removeMember = async (
   if (team.adminId !== requesterId) {
     throw forbidden('Only team admin can remove members');
   }
-  if (team.submitted) {
-    throw badRequest('Cannot modify a submitted team');
+  if (team.registered) {
+    throw badRequest('Cannot modify a registered team');
   }
   if (memberUserId === requesterId) {
     throw badRequest('Team admin cannot remove themselves');
@@ -113,21 +135,65 @@ export const removeMember = async (
   });
 };
 
-export const submitTeam = async (userId: string, teamId: string) => {
+export const deleteTeam = async (requesterId: string, teamId: string) => {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
   });
+  
   if (!team) throw notFound('Team not found');
-  if (team.adminId !== userId) {
-    throw forbidden('Only team admin can submit the team');
+  if (team.adminId !== requesterId) {
+    throw forbidden('Only team admin can delete the team');
   }
-  if (team.submitted) {
-    throw badRequest('Team is already submitted');
+  if (team.registered) {
+    throw badRequest('Cannot delete a registered team');
   }
 
-  return prisma.team.update({
+  await prisma.team.delete({
     where: { id: teamId },
-    data: { submitted: true },
-    include: { members: true },
   });
+
+  return { message: 'Team deleted successfully' };
 };
+
+export const getTeamById = async (teamId: string) => {
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+      event: true,
+      registrations: true,
+    },
+  });
+
+  if (!team) throw notFound('Team not found');
+
+  const currentSize = team.members.length;
+  const minSize = team.event?.minTeamSize ?? 1;
+  const maxSize = team.event?.maxTeamSize ?? 4;
+
+  return {
+    ...team,
+    isRegistered: team.registered,
+    memberCount: currentSize,
+    teamSize: {
+      current: currentSize,
+      min: minSize,
+      max: maxSize,
+      canJoin: !team.registered && currentSize < maxSize,
+      canRegister: !team.registered && currentSize >= minSize,
+    },
+  };
+};
+

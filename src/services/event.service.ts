@@ -37,6 +37,8 @@ export const createEvent = async (data: {
   mode: EventMode;
   abstract?: string | null;
   isLive?: boolean;
+  minTeamSize?: number;
+  maxTeamSize?: number;
 }) => {
   return prisma.event.create({
     data: {
@@ -45,6 +47,8 @@ export const createEvent = async (data: {
       mode: data.mode,
       abstract: data.abstract ?? null,
       isLive: data.isLive ?? false,
+      minTeamSize: data.minTeamSize ?? 1,
+      maxTeamSize: data.maxTeamSize ?? 4,
     },
   });
 };
@@ -63,34 +67,65 @@ export const registerForEvent = async (
     throw badRequest('Registrations are currently closed for this event');
   }
 
+  // TEAM REGISTRATION
   if (teamId) {
     if (event.mode === 'SOLO') {
       throw badRequest('This event does not allow team registration');
     }
+
     const team = await prisma.team.findUnique({
       where: { id: teamId },
-      include: { members: true },
+      include: { 
+        members: true,
+        event: true
+      },
     });
+    
     if (!team) throw notFound('Team not found');
     if (team.adminId !== userId) {
       throw badRequest('Only the team admin can register the team for events');
     }
-    if (team.submitted === false) {
-      throw badRequest('Team must be submitted before registering for events');
+    
+    if (team.eventId !== eventId) {
+      throw badRequest('Team is not associated with this event');
     }
-    const existing = await prisma.eventRegistration.findUnique({
+
+    if (team.registered) {
+      throw badRequest('Team is already registered');
+    }
+
+    // Check team size constraints
+    const currentSize = team.members.length;
+    if (currentSize < event.minTeamSize) {
+      throw badRequest(`Team needs at least ${event.minTeamSize} members to register. Current size: ${currentSize}`);
+    }
+
+    // Check if already registered
+    const existingRegistration = await prisma.eventRegistration.findUnique({
       where: { eventId_teamId: { eventId, teamId } },
     });
-    if (existing) throw badRequest('Team already registered for this event');
+    if (existingRegistration) throw badRequest('Team already registered for this event');
 
-    return prisma.eventRegistration.create({
+    // Create the registration
+    await prisma.eventRegistration.create({
       data: { eventId, teamId },
     });
+
+    // Mark team as registered
+    const updatedTeam = await prisma.team.update({
+      where: { id: teamId },
+      data: { registered: true },
+      include: { members: true },
+    });
+
+    return updatedTeam;
   }
 
+  // SOLO REGISTRATION
   if (event.mode === 'TEAM') {
     throw badRequest('This event requires team registration');
   }
+  
   const existing = await prisma.eventRegistration.findUnique({
     where: { eventId_userId: { eventId, userId } },
   });

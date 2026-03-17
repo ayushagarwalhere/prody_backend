@@ -40,3 +40,51 @@ export const setScore = async (
 
   return score;
 };
+
+export const editUser = async (
+  userId: string,
+  updates: {
+    name?: string;
+    username?: string;
+    email?: string;
+    role?: 'USER' | 'ADMIN';
+    verified?: boolean;
+    avatarUrl?: string;
+  },
+) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw notFound('User not found');
+
+  // Check if username or email already exists (if being updated)
+  if (updates.username && updates.username !== user.username) {
+    const existingUser = await prisma.user.findFirst({
+      where: { username: updates.username },
+    });
+    if (existingUser) throw badRequest('Username already exists');
+  }
+
+  if (updates.email && updates.email !== user.email) {
+    const existingUser = await prisma.user.findFirst({
+      where: { email: updates.email },
+    });
+    if (existingUser) throw badRequest('Email already exists');
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: updates,
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      role: true,
+      verified: true,
+      avatarUrl: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return updatedUser;
+};

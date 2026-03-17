@@ -6,7 +6,8 @@ import {
   createTeamSchema,
   joinTeamSchema,
   removeMemberSchema,
-  submitTeamSchema,
+  getTeamSchema,
+  deleteTeamSchema,
 } from '@validators/team.validator';
 
 const router = Router();
@@ -32,9 +33,15 @@ router.post(
 );
 
 router.post(
-  '/submit',
-  validateRequest({ body: submitTeamSchema.shape.body }),
-  teamController.submitTeam,
+  '/delete',
+  validateRequest({ body: deleteTeamSchema.shape.body }),
+  teamController.deleteTeam,
+);
+
+router.get(
+  '/:teamId',
+  validateRequest({ params: getTeamSchema.shape.params }),
+  teamController.getTeam,
 );
 
 export default router;

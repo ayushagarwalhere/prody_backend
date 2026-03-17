@@ -8,6 +8,16 @@ export const createEventSchema = z.object({
     mode: z.nativeEnum(EventMode),
     abstract: z.string().url().optional(),
     isLive: z.boolean().optional(),
+    minTeamSize: z.number().int().min(1).max(50).optional(),
+    maxTeamSize: z.number().int().min(1).max(50).optional(),
+  }).refine((data) => {
+    if (data.minTeamSize && data.maxTeamSize && data.minTeamSize > data.maxTeamSize) {
+      return false;
+    }
+    return true;
+  }, {
+    message: "minTeamSize cannot be greater than maxTeamSize",
+    path: ["minTeamSize"]
   }),
 });
 
@@ -18,6 +28,9 @@ export const eventIdParamSchema = z.object({
 });
 
 export const registerForEventSchema = z.object({
+  params: z.object({
+    eventId: z.string().cuid(),
+  }),
   body: z.object({
     teamId: z.string().cuid().optional(),
   }),

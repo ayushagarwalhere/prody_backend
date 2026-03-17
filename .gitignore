@@ -9,5 +9,6 @@ build
 .env.production.local
 .env.local 
 
-/src/generated/prisma
+./generated/prisma
 .cursor
+./cookies.txt

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Event" ADD COLUMN     "maxTeamSize" INTEGER NOT NULL DEFAULT 10,
+ADD COLUMN     "minTeamSize" INTEGER NOT NULL DEFAULT 1;

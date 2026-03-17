@@ -82,6 +82,7 @@ export const login = async (
   password: string,
 ): Promise<TokenPair & { user: { id: string; username: string; role: Role } }> => {
   const user = await prisma.user.findFirst({ where: { username } });
+
   if (!user) {
     throw unauthorized('Invalid username or password');
   }

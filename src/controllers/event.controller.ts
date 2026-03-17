@@ -34,12 +34,14 @@ export const createEvent = async (
   next: NextFunction,
 ) => {
   try {
-    const { title, description, mode, abstract, isLive } = req.body as {
+    const { title, description, mode, abstract, isLive, minTeamSize, maxTeamSize } = req.body as {
       title: string;
       description: string;
       mode: 'SOLO' | 'TEAM' | 'BOTH';
       abstract?: string | null;
       isLive?: boolean;
+      minTeamSize?: number;
+      maxTeamSize?: number;
     };
     const event = await eventService.createEvent({
       title,
@@ -47,6 +49,8 @@ export const createEvent = async (
       mode,
       abstract,
       isLive,
+      minTeamSize,
+      maxTeamSize,
     });
     res.status(201).json(event);
   } catch (err) {

@@ -8,8 +8,8 @@ export const createTeam = async (
 ) => {
   try {
     const userId = req.user!.sub;
-    const { name } = req.body as { name: string };
-    const team = await teamService.createTeam(userId, name);
+    const { name, eventId } = req.body as { name: string, eventId: string };
+    const team = await teamService.createTeam(userId, name, eventId);
     res.status(201).json(team);
   } catch (err) {
     next(err);
@@ -46,17 +46,32 @@ export const removeMember = async (
   }
 };
 
-export const submitTeam = async (
+export const deleteTeam = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const userId = req.user!.sub;
+    const requesterId = req.user!.sub;
     const { teamId } = req.body as { teamId: string };
-    const team = await teamService.submitTeam(userId, teamId);
+    const result = await teamService.deleteTeam(requesterId, teamId);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTeam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { teamId } = req.params as { teamId: string };
+    const team = await teamService.getTeamById(teamId);
     res.status(200).json(team);
   } catch (err) {
     next(err);
   }
 };
+

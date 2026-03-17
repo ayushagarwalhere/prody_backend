@@ -18,3 +18,25 @@ export const setScore = async (
     next(err);
   }
 };
+
+export const editUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userId } = req.params as { userId: string };
+    const updates = req.body as {
+      name?: string;
+      username?: string;
+      email?: string;
+      role?: 'USER' | 'ADMIN';
+      verified?: boolean;
+      avatarUrl?: string;
+    };
+    const user = await adminService.editUser(userId, updates);
+    res.status(200).json(user);
+  } catch (err) {
+    next(err);
+  }
+};
