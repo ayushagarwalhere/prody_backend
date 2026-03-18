@@ -26,6 +26,18 @@ export const getTeamSchema = z.object({
   }),
 });
 
+export const getUserTeamRegistrationSchema = z.object({
+  params: z.object({
+    eventId: z.string().cuid(),
+  }),
+});
+
+export const leaveTeamSchema = z.object({
+  body: z.object({
+    teamId: z.string().cuid(),
+  }),
+});
+
 export const deleteTeamSchema = z.object({
   body: z.object({
     teamId: z.string().cuid(),

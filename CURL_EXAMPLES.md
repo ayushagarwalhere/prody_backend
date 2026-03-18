@@ -6,9 +6,11 @@ Base URL: `http://localhost:3000`
 
 ### Complete Team Registration Flow:
 1. **Login & get cookies**
-2. **Create team** (associates with event, `registered: false`)
-3. **Join team** (optional, for other members - respects max team size)
-4. **Register for event** (single route for both solo & team - requires min team size for teams)
+2. **Check if user is part of any team** for the event
+3. **Create team** (if not part of any team, associates with event, `registered: false`)
+4. **Join team** (optional, for other members - respects max team size)
+5. **Leave team** (optional, for non-admin members - only if not registered)
+6. **Register for event** (single route for both solo & team - requires min team size for teams)
 
 ### Team Size Constraints:
 - **minTeamSize**: Minimum members required to register (default: 1)
@@ -150,6 +152,60 @@ curl -X POST http://localhost:3000/teams/join \
   -d '{"teamCode":"ABC123"}'
 ```
 
+### Check user team for event
+> **Note:** Returns whether user is part of any team for the specific event and team details with member names
+
+```bash
+curl http://localhost:3000/teams/event/EVENT_ID \
+  -b cookies.txt
+```
+
+**Response if not part of any team:**
+```json
+{
+  "hasTeam": false,
+  "team": null
+}
+```
+
+**Response if part of a team:**
+```json
+{
+  "hasTeam": true,
+  "team": {
+    "id": "TEAM_ID",
+    "name": "Team Alpha",
+    "teamCode": "ABC123",
+    "registered": false,
+    "memberCount": 3,
+    "members": [
+      {
+        "id": "USER_ID_1",
+        "name": "John Doe",
+        "username": "johndoe",
+        "email": "john@example.com",
+        "avatarUrl": "https://example.com/avatar1.jpg"
+      },
+      {
+        "id": "USER_ID_2", 
+        "name": "Jane Smith",
+        "username": "janesmith",
+        "email": "jane@example.com",
+        "avatarUrl": "https://example.com/avatar2.jpg"
+      }
+    ],
+    "teamSize": {
+      "current": 3,
+      "min": 2,
+      "max": 4,
+      "canJoin": true,
+      "canRegister": true
+    },
+    "isUserAdmin": false
+  }
+}
+```
+
 ### Get team info
 > **Note:** Returns detailed team size information and registration status
 
@@ -173,6 +229,16 @@ curl http://localhost:3000/teams/TEAM_ID \
     "canRegister": true
   }
 }
+```
+
+### Leave team
+> **Note:** Any team member (except admin) can leave an unregistered team
+
+```bash
+curl -X POST http://localhost:3000/teams/leave \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"teamId":"TEAM_ID"}'
 ```
 
 ### Remove member
@@ -248,17 +314,27 @@ curl -X POST http://localhost:3000/teams/create \
   -b cookies.txt \
   -d '{"name":"My Team","eventId":"EVENT_ID"}'
 
-# 4. Other members join (optional)
+# 4. Check if user is part of any team for the event
+curl http://localhost:3000/teams/event/EVENT_ID \
+  -b cookies.txt
+
+# 5. Other members join (optional)
 curl -X POST http://localhost:3000/teams/join \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamCode":"TEAM_CODE"}'
 
-# 5. Check team status
+# 6. Leave team (optional, for non-admin members)
+curl -X POST http://localhost:3000/teams/leave \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"teamId":"TEAM_ID"}'
+
+# 7. Check team status
 curl http://localhost:3000/teams/TEAM_ID \
   -b cookies.txt
 
-# 6. Register team for event (single route!)
+# 8. Register team for event (single route!)
 curl -X POST http://localhost:3000/events/EVENT_ID/register \
   -H "Content-Type: application/json" \
   -b cookies.txt \

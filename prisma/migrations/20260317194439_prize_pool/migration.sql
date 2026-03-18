@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Event" ADD COLUMN     "prizePool" INTEGER NOT NULL DEFAULT 10000;

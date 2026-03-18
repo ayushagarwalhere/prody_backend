@@ -14,6 +14,10 @@ const notFound = (message: string) => httpError(404, message);
 
 export const listEvents = async () => {
   return prisma.event.findMany({
+    select:{
+      id:true,
+      title:true,
+    },
     orderBy: { createdAt: 'desc' },
   });
 };

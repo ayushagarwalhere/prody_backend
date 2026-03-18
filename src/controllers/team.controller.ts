@@ -46,6 +46,21 @@ export const removeMember = async (
   }
 };
 
+export const leaveTeam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.sub;
+    const { teamId } = req.body as { teamId: string };
+    const team = await teamService.leaveTeam(userId, teamId);
+    res.status(200).json(team);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deleteTeam = async (
   req: Request,
   res: Response,
@@ -56,6 +71,21 @@ export const deleteTeam = async (
     const { teamId } = req.body as { teamId: string };
     const result = await teamService.deleteTeam(requesterId, teamId);
     res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getUserTeamForEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.sub;
+    const { eventId } = req.params as { eventId: string };
+    const teamInfo = await teamService.getUserTeamForEvent(userId, eventId);
+    res.status(200).json(teamInfo);
   } catch (err) {
     next(err);
   }

@@ -7,6 +7,8 @@ import {
   joinTeamSchema,
   removeMemberSchema,
   getTeamSchema,
+  getUserTeamRegistrationSchema,
+  leaveTeamSchema,
   deleteTeamSchema,
 } from '@validators/team.validator';
 
@@ -33,9 +35,21 @@ router.post(
 );
 
 router.post(
+  '/leave',
+  validateRequest({ body: leaveTeamSchema.shape.body }),
+  teamController.leaveTeam,
+);
+
+router.post(
   '/delete',
   validateRequest({ body: deleteTeamSchema.shape.body }),
   teamController.deleteTeam,
+);
+
+router.get(
+  '/event/:eventId',
+  validateRequest({ params: getUserTeamRegistrationSchema.shape.params }),
+  teamController.getUserTeamForEvent,
 );
 
 router.get(
