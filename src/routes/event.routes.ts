@@ -13,6 +13,11 @@ const router = Router();
 
 router.get('/', eventController.listEvents);
 router.get(
+  '/my-registrations',
+  authMiddleware,
+  eventController.getUserRegistrations,
+);
+router.get(
   '/:id',
   validateRequest({ params: eventIdParamSchema.shape.params }),
   eventController.getEventById,

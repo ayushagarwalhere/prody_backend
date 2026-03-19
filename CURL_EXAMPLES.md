@@ -21,6 +21,12 @@ Base URL: `http://localhost:3000`
 ### Complete Solo Registration Flow:
 1. **Login & get cookies**
 2. **Register for event directly** (same route, no teamId)
+3. **Check your registrations** (view all events you're registered for)
+
+### View Your Registrations:
+- **Solo registrations** show individual event details
+- **Team registrations** show event + team information
+- **Sorted by registration date** (newest first)
 
 ---
 
@@ -100,6 +106,52 @@ curl http://localhost:3000/events
 ### Get event by ID
 ```bash
 curl http://localhost:3000/events/EVENT_ID
+```
+
+### Get user's event registrations
+> **Note:** Returns all events the user is registered for (solo and team)
+
+```bash
+curl http://localhost:3000/events/my-registrations \
+  -b cookies.txt
+```
+
+**Response example:**
+```json
+[
+  {
+    "id": "REG_ID_1",
+    "registeredAt": "2025-03-18T10:30:00.000Z",
+    "event": {
+      "id": "EVENT_ID_1",
+      "title": "Hackathon 2025",
+      "description": "Annual hackathon",
+      "mode": "BOTH",
+      "isLive": true,
+      "createdAt": "2025-03-15T09:00:00.000Z"
+    },
+    "registrationType": "solo",
+    "team": null
+  },
+  {
+    "id": "REG_ID_2",
+    "registeredAt": "2025-03-17T14:20:00.000Z",
+    "event": {
+      "id": "EVENT_ID_2",
+      "title": "Coding Challenge",
+      "description": "Weekly coding challenge",
+      "mode": "TEAM",
+      "isLive": true,
+      "createdAt": "2025-03-10T08:00:00.000Z"
+    },
+    "registrationType": "team",
+    "team": {
+      "id": "TEAM_ID",
+      "name": "Code Warriors",
+      "teamCode": "ABC123"
+    }
+  }
+]
 ```
 
 ### Create event (admin)
@@ -252,13 +304,20 @@ curl -X POST http://localhost:3000/teams/remove-member \
 ```
 
 ### Delete team (team admin only)
-> **Note:** Can only delete teams that haven't been registered yet
+> **Note:** Can only delete teams that haven't been registered yet. This will remove all team members and then delete the team.
 
 ```bash
 curl -X POST http://localhost:3000/teams/delete \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamId":"TEAM_ID"}'
+```
+
+**Response:**
+```json
+{
+  "message": "Team deleted successfully"
+}
 ```
 
 ---
@@ -339,4 +398,8 @@ curl -X POST http://localhost:3000/events/EVENT_ID/register \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamId":"TEAM_ID"}'
+
+# 9. Check all your event registrations
+curl http://localhost:3000/events/my-registrations \
+  -b cookies.txt
 ```

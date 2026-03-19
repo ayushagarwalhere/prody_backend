@@ -12,6 +12,82 @@ const httpError = (statusCode: number, message: string): HttpError => {
 const badRequest = (message: string) => httpError(400, message);
 const notFound = (message: string) => httpError(404, message);
 
+export const getUserRegistrations = async (userId: string) => {
+  // Get solo registrations
+  const soloRegistrations = await prisma.eventRegistration.findMany({
+    where: {
+      userId: userId,
+    },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          mode: true,
+          isLive: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  // Get team registrations
+  const teamRegistrations = await prisma.eventRegistration.findMany({
+    where: {
+      team: {
+        members: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+    },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          mode: true,
+          isLive: true,
+          createdAt: true,
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          name: true,
+          teamCode: true,
+        },
+      },
+    },
+  });
+
+  // Combine and format results
+  const allRegistrations = [
+    ...soloRegistrations.map(reg => ({
+      id: reg.id,
+      registeredAt: reg.createdAt,
+      event: reg.event,
+      registrationType: 'solo' as const,
+      team: null,
+    })),
+    ...teamRegistrations.map(reg => ({
+      id: reg.id,
+      registeredAt: reg.createdAt,
+      event: reg.event,
+      registrationType: 'team' as const,
+      team: reg.team,
+    })),
+  ];
+
+  // Sort by registration date
+  return allRegistrations.sort((a, b) => 
+    new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime()
+  );
+};
+
 export const listEvents = async () => {
   return prisma.event.findMany({
     select:{

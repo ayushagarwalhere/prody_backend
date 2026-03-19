@@ -1,6 +1,20 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as eventService from '@services/event.service';
 
+export const getUserRegistrations = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.sub;
+    const registrations = await eventService.getUserRegistrations(userId);
+    res.status(200).json(registrations);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const listEvents = async (
   _req: Request,
   res: Response,

@@ -187,6 +187,12 @@ export const deleteTeam = async (requesterId: string, teamId: string) => {
     throw badRequest('Cannot delete a registered team');
   }
 
+  // First, delete all team members
+  await prisma.teamMember.deleteMany({
+    where: { teamId: teamId },
+  });
+
+  // Then delete the team
   await prisma.team.delete({
     where: { id: teamId },
   });
