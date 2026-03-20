@@ -52,6 +52,25 @@ export const getUsersByEvent = async (
   }
 };
 
+export const exportTeamsAsCSV = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { eventId } = req.query as { eventId?: string };
+    const result = await adminService.exportTeamsAsCSV(eventId);
+    
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    
+    res.status(200).send(result.csvContent);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const setScore = async (
   req: Request,
   res: Response,

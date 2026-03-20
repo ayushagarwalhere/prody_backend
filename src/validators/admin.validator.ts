@@ -30,6 +30,12 @@ export const setScoreSchema = z.object({
   }),
 });
 
+export const exportTeamsCSVSchema = z.object({
+  query: z.object({
+    eventId: z.string().cuid().optional(),
+  }),
+});
+
 export const editUserSchema = z.object({
   params: z.object({
     userId: z.string().cuid(),

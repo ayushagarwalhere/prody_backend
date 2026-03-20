@@ -3,7 +3,7 @@ import * as adminController from '@controllers/admin.controller';
 import { validateRequest } from '@middleware/validateRequest';
 import { authMiddleware } from '@middleware/auth';
 import { requireAdmin } from '@middleware/role';
-import { setScoreSchema, editUserSchema, editEventSchema, getUsersByEventSchema } from '@validators/admin.validator';
+import { setScoreSchema, editUserSchema, editEventSchema, getUsersByEventSchema, exportTeamsCSVSchema } from '@validators/admin.validator';
 
 const router = Router();
 
@@ -45,6 +45,13 @@ router.post(
   '/score',
   validateRequest({ body: setScoreSchema.shape.body }),
   adminController.setScore,
+);
+
+// Export functionality
+router.get(
+  '/export/teams/csv',
+  validateRequest({ query: exportTeamsCSVSchema.shape.query }),
+  adminController.exportTeamsAsCSV,
 );
 
 export default router;

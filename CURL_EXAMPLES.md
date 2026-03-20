@@ -430,6 +430,36 @@ curl -X POST http://localhost:3000/admin/score \
   -d '{"eventId":"EVENT_ID","teamId":"TEAM_ID","value":100}'
 ```
 
+### Export teams as CSV (admin)
+> **Note:** Export all teams or teams from specific event as CSV file
+
+```bash
+# Export all teams
+curl http://localhost:3000/admin/export/teams/csv \
+  -b cookies.txt \
+  -o all_teams_$(date +%Y-%m-%d).csv
+
+# Export teams for specific event
+curl "http://localhost:3000/admin/export/teams/csv?eventId=EVENT_ID" \
+  -b cookies.txt \
+  -o teams_event_EVENT_ID_$(date +%Y-%m-%d).csv
+```
+
+**CSV Format Includes:**
+- Team ID, Name, Code
+- Event ID and Title
+- Registration Status
+- Member Count
+- Admin Details (ID, Name, Username, Email)
+- All Members (ID|Name|Username|Email format)
+- Creation Timestamp
+
+**Sample CSV Output:**
+```csv
+Team ID,Team Name,Team Code,Event ID,Event Title,Registered,Member Count,Admin ID,Admin Name,Admin Username,Admin Email,"Members (ID|Name|Username|Email)",Created At
+"team123","Code Warriors","ABC123","event456","Hackathon 2025","Yes","3","user789","John Doe","johndoe","john@example.com","user789|John Doe|johndoe|john@example.com; user790|Jane Smith|janesmith|jane@example.com; user791|Bob Wilson|bobwilson|bob@example.com","2025-03-19T10:53:10.286Z"
+```
+
 ### Get leaderboard for event
 ```bash
 curl http://localhost:3000/leaderboard/EVENT_ID

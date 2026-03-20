@@ -170,6 +170,119 @@ export const getUsersByEvent = async (eventId: string) => {
   };
 };
 
+export const exportTeamsAsCSV = async (eventId?: string) => {
+  let teams;
+  
+  if (eventId) {
+    // Get teams for specific event
+    teams = await prisma.team.findMany({
+      where: { eventId: eventId },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  } else {
+    // Get all teams
+    teams = await prisma.team.findMany({
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  // Generate CSV
+  const headers = [
+    'Team ID',
+    'Team Name',
+    'Team Code',
+    'Event ID',
+    'Event Title',
+    'Registered',
+    'Member Count',
+    'Admin ID',
+    'Admin Name',
+    'Admin Username',
+    'Admin Email',
+    'Members (ID|Name|Username|Email)',
+    'Created At'
+  ];
+
+  const csvRows = teams.map(team => {
+    const admin = team.members.find(member => member.userId === team.adminId);
+    const membersList = team.members
+      .map(member => `${member.user.id}|${member.user.name}|${member.user.username}|${member.user.email}`)
+      .join('; ');
+
+    return [
+      team.id,
+      team.name,
+      team.teamCode,
+      team.eventId,
+      team.event.title,
+      team.registered ? 'Yes' : 'No',
+      team.members.length.toString(),
+      team.adminId,
+      admin?.user.name || 'N/A',
+      admin?.user.username || 'N/A',
+      admin?.user.email || 'N/A',
+      membersList,
+      team.createdAt.toISOString()
+    ];
+  });
+
+  // Convert to CSV string
+  const csvContent = [
+    headers.join(','),
+    ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
+
+  return {
+    filename: eventId 
+      ? `teams_event_${eventId}_${new Date().toISOString().split('T')[0]}.csv`
+      : `all_teams_${new Date().toISOString().split('T')[0]}.csv`,
+    csvContent,
+    totalTeams: teams.length
+  };
+};
+
 export const setScore = async (
   eventId: string,
   teamId: string,
