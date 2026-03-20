@@ -10,7 +10,7 @@ export const appConfig = {
 
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-me',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-me',
-  jwtAccessExpiresInMinutes: Number(process.env.JWT_ACCESS_EXPIRES_IN_MINUTES || 15),
+  jwtAccessExpiresInMinutes: Number(process.env.JWT_ACCESS_EXPIRES_IN_MINUTES || 30),
   jwtRefreshExpiresInDays: Number(process.env.JWT_REFRESH_EXPIRES_IN_DAYS || 7),
 
   cookieDomain: process.env.COOKIE_DOMAIN || 'localhost',

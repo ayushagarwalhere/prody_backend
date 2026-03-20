@@ -1,6 +1,57 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as adminService from '@services/admin.service';
 
+export const editEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { eventId } = req.params as { eventId: string };
+    const data = req.body as {
+      title?: string;
+      description?: string;
+      mode?: 'SOLO' | 'TEAM' | 'BOTH';
+      abstract?: string | null;
+      isLive?: boolean;
+      minTeamSize?: number;
+      maxTeamSize?: number;
+      prizePool?: number;
+    };
+    const event = await adminService.editEvent(eventId, data);
+    res.status(200).json(event);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const users = await adminService.getAllUsers();
+    res.status(200).json(users);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getUsersByEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { eventId } = req.params as { eventId: string };
+    const result = await adminService.getUsersByEvent(eventId);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const setScore = async (
   req: Request,
   res: Response,

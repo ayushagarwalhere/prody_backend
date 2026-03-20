@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as eventController from '@controllers/event.controller';
+import * as adminController from '@controllers/admin.controller';
 import { validateRequest } from '@middleware/validateRequest';
 import { authMiddleware } from '@middleware/auth';
 import { requireAdmin } from '@middleware/role';
@@ -8,6 +9,7 @@ import {
   eventIdParamSchema,
   registerForEventSchema,
 } from '@validators/event.validator';
+import { editEventSchema } from '@validators/admin.validator';
 
 const router = Router();
 
@@ -29,6 +31,17 @@ router.post(
   requireAdmin,
   validateRequest({ body: createEventSchema.shape.body }),
   eventController.createEvent,
+);
+
+router.patch(
+  '/:id',
+  authMiddleware,
+  requireAdmin,
+  validateRequest({ 
+    params: editEventSchema.shape.params,
+    body: editEventSchema.shape.body 
+  }),
+  adminController.editEvent,
 );
 
 router.post(

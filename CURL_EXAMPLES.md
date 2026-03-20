@@ -83,16 +83,23 @@ curl -X POST http://localhost:3000/auth/reset-password \
 ## User (authenticated)
 
 ### Get profile
+> **Note:** Authentication is now handled automatically with token refresh. No need to manually manage tokens!
+
 ```bash
 curl http://localhost:3000/user/profile \
   -b cookies.txt
 ```
 
-Or with Bearer token:
+Or with Bearer token (still works):
 ```bash
 curl http://localhost:3000/user/profile \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
+
+> **🎉 Improved Auth Experience**: 
+> - Access tokens now last 30 minutes (increased from 15)
+> - Automatic token refresh - no more 401 errors!
+> - Just use cookies and the system handles the rest
 
 ---
 
@@ -160,6 +167,16 @@ curl -X POST http://localhost:3000/events \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"title":"Hackathon 2025","description":"Annual hackathon","mode":"BOTH","minTeamSize":2,"maxTeamSize":4}'
+```
+
+### Edit event (admin)
+> **Note:** Can update any event fields. Validates team size constraints.
+
+```bash
+curl -X PATCH http://localhost:3000/events/EVENT_ID \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"title":"Updated Hackathon","isLive":false,"minTeamSize":3,"maxTeamSize":5}'
 ```
 
 ### Register for event (solo registration)
@@ -322,7 +339,96 @@ curl -X POST http://localhost:3000/teams/delete \
 
 ---
 
-## Leaderboard
+## Admin Panel (admin only)
+
+### List all users
+> **Note:** Returns all users with team and registration counts
+
+```bash
+curl http://localhost:3000/admin/users \
+  -b cookies.txt
+```
+
+**Response example:**
+```json
+[
+  {
+    "id": "USER_ID",
+    "name": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "verified": true,
+    "avatarUrl": "https://example.com/avatar.jpg",
+    "createdAt": "2025-03-19T10:53:10.286Z",
+    "role": "USER",
+    "_count": {
+      "teams": 2,
+      "registrations": 3
+    }
+  }
+]
+```
+
+### Get users by event
+> **Note:** Returns all users registered for a specific event (solo + team)
+
+```bash
+curl http://localhost:3000/admin/events/EVENT_ID/users \
+  -b cookies.txt
+```
+
+**Response example:**
+```json
+{
+  "eventId": "EVENT_ID",
+  "eventTitle": "Hackathon 2025",
+  "totalUsers": 25,
+  "users": [
+    {
+      "id": "USER_ID_1",
+      "name": "John Doe",
+      "username": "johndoe",
+      "email": "john@example.com",
+      "avatarUrl": "https://example.com/avatar1.jpg",
+      "createdAt": "2025-03-15T09:00:00.000Z",
+      "registrationType": "solo",
+      "registrationDate": "2025-03-18T10:30:00.000Z"
+    },
+    {
+      "id": "USER_ID_2",
+      "name": "Jane Smith",
+      "username": "janesmith",
+      "email": "jane@example.com",
+      "avatarUrl": "https://example.com/avatar2.jpg",
+      "createdAt": "2025-03-10T08:00:00.000Z",
+      "registrationType": "team",
+      "registrationDate": "2025-03-17T14:20:00.000Z",
+      "teamName": "Code Warriors",
+      "teamCode": "ABC123"
+    }
+  ]
+}
+```
+
+### Edit user (admin)
+> **Note:** Can update user name, username, email, and verification status
+
+```bash
+curl -X PATCH http://localhost:3000/admin/users/USER_ID \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"name":"Updated Name","verified":true}'
+```
+
+### Set score (admin)
+> **Note:** Set or update scores for registered teams
+
+```bash
+curl -X POST http://localhost:3000/admin/score \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"eventId":"EVENT_ID","teamId":"TEAM_ID","value":100}'
+```
 
 ### Get leaderboard for event
 ```bash

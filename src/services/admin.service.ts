@@ -12,6 +12,164 @@ const httpError = (statusCode: number, message: string): HttpError => {
 const badRequest = (message: string) => httpError(400, message);
 const notFound = (message: string) => httpError(404, message);
 
+export const editEvent = async (
+  eventId: string,
+  data: {
+    title?: string;
+    description?: string;
+    mode?: 'SOLO' | 'TEAM' | 'BOTH';
+    abstract?: string | null;
+    isLive?: boolean;
+    minTeamSize?: number;
+    maxTeamSize?: number;
+    prizePool?: number;
+  },
+) => {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw notFound('Event not found');
+
+  // Validate team size constraints if provided
+  if (data.minTeamSize !== undefined && data.maxTeamSize !== undefined) {
+    if (data.minTeamSize > data.maxTeamSize) {
+      throw badRequest('minTeamSize cannot be greater than maxTeamSize');
+    }
+  }
+
+  const updatedEvent = await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      title: data.title,
+      description: data.description,
+      mode: data.mode,
+      abstract: data.abstract ?? null,
+      isLive: data.isLive,
+      minTeamSize: data.minTeamSize,
+      maxTeamSize: data.maxTeamSize,
+      prizePool: data.prizePool,
+    },
+  });
+
+  return updatedEvent;
+};
+
+export const getAllUsers = async () => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      verified: true,
+      avatarUrl: true,
+      createdAt: true,
+      role: true,
+      _count: {
+        select: {
+          teams: true,
+          registrations: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return users;
+};
+
+export const getUsersByEvent = async (eventId: string) => {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw notFound('Event not found');
+
+  // Get solo registrations
+  const soloRegistrations = await prisma.eventRegistration.findMany({
+    where: {
+      eventId: eventId,
+      userId: { not: null },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          avatarUrl: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  // Get team registrations
+  const teamRegistrations = await prisma.eventRegistration.findMany({
+    where: {
+      eventId: eventId,
+      teamId: { not: null },
+    },
+    include: {
+      team: {
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                  email: true,
+                  avatarUrl: true,
+                  createdAt: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Combine and deduplicate users
+  const userMap = new Map();
+
+  // Add solo registered users
+  soloRegistrations.forEach(reg => {
+    if (reg.user) {
+      userMap.set(reg.user.id, {
+        ...reg.user,
+        registrationType: 'solo',
+        registrationDate: reg.createdAt,
+      });
+    }
+  });
+
+  // Add team registered users
+  teamRegistrations.forEach(reg => {
+    if (reg.team) {
+      const team = reg.team;
+      team.members.forEach(member => {
+        if (member.user && !userMap.has(member.user.id)) {
+          userMap.set(member.user.id, {
+            ...member.user,
+            registrationType: 'team',
+            registrationDate: reg.createdAt,
+            teamName: team.name,
+            teamCode: team.teamCode,
+          });
+        }
+      });
+    }
+  });
+
+  return {
+    eventId: eventId,
+    eventTitle: event.title,
+    totalUsers: userMap.size,
+    users: Array.from(userMap.values()).sort((a, b) => 
+      new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
+    ),
+  };
+};
+
 export const setScore = async (
   eventId: string,
   teamId: string,
@@ -47,9 +205,7 @@ export const editUser = async (
     name?: string;
     username?: string;
     email?: string;
-    role?: 'USER' | 'ADMIN';
     verified?: boolean;
-    avatarUrl?: string;
   },
 ) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -78,7 +234,6 @@ export const editUser = async (
       name: true,
       username: true,
       email: true,
-      role: true,
       verified: true,
       avatarUrl: true,
       createdAt: true,

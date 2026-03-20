@@ -26,7 +26,11 @@ export const getProfile = async (userId: string) => {
         include: {
           team: {
             include: {
-              members: { select: { userId: true } },
+              members: {
+                include: {
+                  user: { select: { id: true, name: true, username: true, avatarUrl: true } }
+                }
+              },
               _count: { select: { members: true } },
             },
           },
@@ -48,6 +52,7 @@ export const getProfile = async (userId: string) => {
     id: t.team.id,
     name: t.team.name,
     team: t.team.members,
+    eventId : t.team.eventId,
     teamCode: t.team.teamCode,
     isAdmin: t.team.adminId === userId,
     submitted: t.team.submitted,

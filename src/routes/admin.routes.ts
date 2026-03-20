@@ -3,16 +3,22 @@ import * as adminController from '@controllers/admin.controller';
 import { validateRequest } from '@middleware/validateRequest';
 import { authMiddleware } from '@middleware/auth';
 import { requireAdmin } from '@middleware/role';
-import { setScoreSchema, editUserSchema } from '@validators/admin.validator';
+import { setScoreSchema, editUserSchema, editEventSchema, getUsersByEventSchema } from '@validators/admin.validator';
 
 const router = Router();
 
 router.use(authMiddleware, requireAdmin);
 
-router.post(
-  '/score',
-  validateRequest({ body: setScoreSchema.shape.body }),
-  adminController.setScore,
+// User management
+router.get(
+  '/users',
+  adminController.getAllUsers,
+);
+
+router.get(
+  '/events/:eventId/users',
+  validateRequest({ params: getUsersByEventSchema.shape.params }),
+  adminController.getUsersByEvent,
 );
 
 router.patch(
@@ -22,6 +28,23 @@ router.patch(
     body: editUserSchema.shape.body 
   }),
   adminController.editUser,
+);
+
+// Event management
+router.patch(
+  '/events/:eventId',
+  validateRequest({ 
+    params: editEventSchema.shape.params,
+    body: editEventSchema.shape.body 
+  }),
+  adminController.editEvent,
+);
+
+// Score management
+router.post(
+  '/score',
+  validateRequest({ body: setScoreSchema.shape.body }),
+  adminController.setScore,
 );
 
 export default router;
