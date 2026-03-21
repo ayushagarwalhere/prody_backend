@@ -196,6 +196,40 @@ export const verifyEmail = async (token: string): Promise<void> => {
   ]);
 };
 
+export const resendVerificationEmail = async (email: string): Promise<void> => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  
+  if (!user) {
+    // Don't reveal if email exists or not for security
+    return;
+  }
+  
+  if (user.verified) {
+    throw badRequest('Email is already verified');
+  }
+
+  // Delete any existing verification tokens
+  await prisma.emailVerificationToken.deleteMany({
+    where: { userId: user.id },
+  });
+
+  // Create new verification token
+  const verificationToken = randomBytes(32).toString('hex');
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + VERIFICATION_EXPIRY_HOURS);
+
+  await prisma.emailVerificationToken.create({
+    data: {
+      token: verificationToken,
+      userId: user.id,
+      expiresAt,
+    },
+  });
+
+  const verificationLink = `${appConfig.appUrl}/auth/verify-email?token=${verificationToken}`;
+  await sendVerificationEmail(user.email, verificationLink);
+};
+
 export const forgotPassword = async (email: string): Promise<void> => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {

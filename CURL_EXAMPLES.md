@@ -78,6 +78,22 @@ curl -X POST http://localhost:3000/auth/reset-password \
   -d '{"token":"RESET_TOKEN","password":"newpassword123"}'
 ```
 
+### Resend verification email
+> **Note:** Sends a new verification link if email exists and is not verified
+
+```bash
+curl -X POST http://localhost:3000/auth/resend-verification \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com"}'
+```
+
+**Response:**
+```json
+{
+  "message": "If the email exists and is not verified, a verification link has been sent"
+}
+```
+
 ---
 
 ## User (authenticated)
@@ -497,45 +513,88 @@ curl -X POST http://localhost:3000/auth/login \
   -d '{"email":"user@example.com","password":"password123"}' \
   -c cookies.txt
 
-# 2. Create event (admin)
+# 2. Resend verification (if needed)
+curl -X POST http://localhost:3000/auth/resend-verification \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com"}'
+
+# 3. Create event (admin)
 curl -X POST http://localhost:3000/events \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"title":"Hackathon","description":"Annual hackathon","mode":"BOTH","minTeamSize":2,"maxTeamSize":4}'
 
-# 3. Create team
+# 4. Create team
 curl -X POST http://localhost:3000/teams/create \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"name":"My Team","eventId":"EVENT_ID"}'
 
-# 4. Check if user is part of any team for the event
+# 5. Check if user is part of any team for the event
 curl http://localhost:3000/teams/event/EVENT_ID \
   -b cookies.txt
 
-# 5. Other members join (optional)
+# 6. Other members join (optional)
 curl -X POST http://localhost:3000/teams/join \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamCode":"TEAM_CODE"}'
 
-# 6. Leave team (optional, for non-admin members)
+# 7. Leave team (optional, for non-admin members)
 curl -X POST http://localhost:3000/teams/leave \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamId":"TEAM_ID"}'
 
-# 7. Check team status
+# 8. Check team status
 curl http://localhost:3000/teams/TEAM_ID \
   -b cookies.txt
 
-# 8. Register team for event (single route!)
+# 9. Register team for event (single route!)
 curl -X POST http://localhost:3000/events/EVENT_ID/register \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"teamId":"TEAM_ID"}'
 
-# 9. Check all your event registrations
+# 10. Check all your event registrations
+curl http://localhost:3000/events/my-registrations \
+  -b cookies.txt
+
+# 11. Get leaderboard
+curl http://localhost:3000/leaderboard/EVENT_ID
+
+# 12. Admin sets score (if admin)
+curl -X POST http://localhost:3000/admin/score \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"eventId":"EVENT_ID","teamId":"TEAM_ID","value":100}'
+
+# 13. Export teams as CSV (if admin)
+curl http://localhost:3000/admin/export/teams/csv \
+  -b cookies.txt \
+  -o teams_$(date +%Y-%m-%d).csv
+```
+
+### Solo Registration Workflow:
+```bash
+# 1. Login
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}' \
+  -c cookies.txt
+
+# 2. Resend verification (if needed)
+curl -X POST http://localhost:3000/auth/resend-verification \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com"}'
+
+# 3. Register solo for event
+curl -X POST http://localhost:3000/events/EVENT_ID/register \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{}'
+
+# 4. Check your registrations
 curl http://localhost:3000/events/my-registrations \
   -b cookies.txt
 ```

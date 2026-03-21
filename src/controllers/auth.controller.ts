@@ -75,6 +75,22 @@ export const verifyEmail = async (
   }
 };
 
+export const resendVerificationEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email } = req.body as { email: string };
+    await authService.resendVerificationEmail(email);
+    res.status(200).json({ 
+      message: 'If the email exists and is not verified, a verification link has been sent' 
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const forgotPassword = async (
   req: Request,
   res: Response,

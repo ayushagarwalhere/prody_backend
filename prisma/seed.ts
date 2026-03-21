@@ -1,7 +1,16 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from 'bcrypt';
+import { PrismaClient, Role } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import bcrypt from "bcrypt";
+import { config } from "dotenv";
 
-const prisma = new PrismaClient();
+// Load environment variables
+config();
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const username = process.env.ADMIN_USERNAME;
@@ -10,26 +19,31 @@ async function main() {
 
   if (!username || !password || !email) {
     throw new Error(
-      "Missing env vars: ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL must all be set."
+      "Missing env vars: ADMIN_USERNAME, ADMIN_PASSWORD and ADMIN_EMAIL must all be set."
     );
   }
+
+  console.log("Seeding admin user...");
+  console.log(`Email: ${email}`);
+  console.log(`Username: ${username}`);
 
   const hashed = await bcrypt.hash(password, 12);
 
   const admin = await prisma.user.upsert({
     where:  { email },
     update: {
-      password:  hashed,
+      password: hashed,
       username,
-      role:      "ADMIN",
-      verified:  true,
+      name:     username,
+      role:     Role.ADMIN,
+      verified: true,
     },
     create: {
       email,
-      password:  hashed,
+      password: hashed,
       username,
       name:      username,
-      role:      "ADMIN",
+      role:      Role.ADMIN,
       verified:  true,
       avatarUrl: `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${username}`,
     },
@@ -39,5 +53,8 @@ async function main() {
 }
 
 main()
-  .catch(e => { console.error(e); process.exit(1); })
+  .catch(e => { 
+    console.error("Error seeding admin:", e); 
+    process.exit(1); 
+  })
   .finally(() => prisma.$disconnect());

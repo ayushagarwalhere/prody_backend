@@ -7,6 +7,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyEmailQuerySchema,
+  resendVerificationSchema,
 } from '@validators/auth.validator';
 
 const router = Router();
@@ -26,6 +27,12 @@ router.post(
 router.post('/logout', authController.logout);
 
 router.post('/refresh', authController.refresh);
+
+router.post(
+  '/resend-verification',
+  validateRequest({ body: resendVerificationSchema.shape.body }),
+  authController.resendVerificationEmail,
+);
 
 router.get(
   '/verify-email',
