@@ -39,13 +39,64 @@ This will create/update an admin user with the specified credentials, automatica
 
 ## Scripts
 
-- `bun run dev` – start dev server
-- `npm run start` – start production server
+- `bun run dev` – start dev server (TypeScript)
+- `bun run build` – compile TypeScript to JavaScript
+- `npm run start` – start production server (from built files)
 - `npx prisma migrate dev` – create/apply migrations (dev)
 - `npx prisma migrate deploy` – apply migrations (production)
 - `npx prisma generate` – generate Prisma client
 - `npx prisma studio` – open Prisma Studio
 - `bun run prisma:seed` – seed admin user
+
+## Build & Deployment
+
+### Local Development
+```bash
+# Development mode (TypeScript)
+bun run dev
+
+# Build for production
+bun run build
+
+# Production mode (JavaScript)
+bun run start
+```
+
+### Docker Deployment
+```bash
+# Build Docker image
+docker build -t prody-backend .
+
+# Run container
+docker run -p 3000:3000 \
+  -e DATABASE_URL="your-database-url" \
+  -e REDIS_URL="your-redis-url" \
+  -e JWT_ACCESS_SECRET="your-jwt-secret" \
+  -e JWT_REFRESH_SECRET="your-refresh-secret" \
+  -e RESEND_API_KEY="your-resend-key" \
+  prody-backend
+
+# Or with docker-compose (includes PostgreSQL & Redis)
+docker-compose up -d
+
+# Run database migrations
+docker-compose exec app bun run prisma:deploy
+
+# Seed admin user
+docker-compose exec app bun run prisma:seed
+```
+
+### Environment Variables
+See `.env.example` for all required environment variables. Key variables for production:
+
+- `DATABASE_URL` – PostgreSQL connection string
+- `REDIS_URL` – Redis connection string  
+- `JWT_ACCESS_SECRET` – JWT access token secret
+- `JWT_REFRESH_SECRET` – JWT refresh token secret
+- `RESEND_API_KEY` – Email service API key
+- `ADMIN_USERNAME` – Admin username (for seeding)
+- `ADMIN_PASSWORD` – Admin password (for seeding)
+- `ADMIN_EMAIL` – Admin email (for seeding)
 
 ## API overview
 
