@@ -25,6 +25,20 @@ export const editEvent = async (
   }
 };
 
+export const deleteEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { eventId } = req.params as { eventId: string };
+    const result = await adminService.deleteEvent(eventId);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getAllUsers = async (
   req: Request,
   res: Response,

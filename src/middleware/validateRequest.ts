@@ -15,10 +15,14 @@ export const validateRequest =
         req.body = schemas.body.parse(req.body);
       }
       if (schemas.query) {
-        res.locals.query = schemas.query.parse(req.query);
+        const parsedQuery = schemas.query.parse(req.query);
+        req.query = parsedQuery;
+        res.locals.query = parsedQuery;
       }
       if (schemas.params) {
-        res.locals.params = schemas.params.parse(req.params);
+        const parsedParams = schemas.params.parse(req.params);
+        req.params = parsedParams;
+        res.locals.params = parsedParams;
       }
       next();
     } catch (err) {

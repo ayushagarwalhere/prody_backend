@@ -40,6 +40,14 @@ router.patch(
   adminController.editEvent,
 );
 
+router.delete(
+  '/events/:eventId',
+  validateRequest({
+    params: editEventSchema.shape.params,
+  }),
+  adminController.deleteEvent,
+);
+
 // Score management
 router.post(
   '/score',

@@ -52,6 +52,57 @@ export const editEvent = async (
   return updatedEvent;
 };
 
+export const deleteEvent = async (eventId: string) => {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw notFound('Event not found');
+
+  await prisma.$transaction(async (tx) => {
+    const teams = await tx.team.findMany({
+      where: { eventId },
+      select: { id: true },
+    });
+
+    const teamIds = teams.map((team) => team.id);
+
+    if (teamIds.length > 0) {
+      await tx.score.deleteMany({
+        where: { teamId: { in: teamIds } },
+      });
+
+      await tx.eventRegistration.deleteMany({
+        where: { teamId: { in: teamIds } },
+      });
+
+      await tx.teamMember.deleteMany({
+        where: { teamId: { in: teamIds } },
+      });
+
+      await tx.team.deleteMany({
+        where: { id: { in: teamIds } },
+      });
+    }
+
+    await tx.score.deleteMany({
+      where: { eventId },
+    });
+
+    await tx.eventRegistration.deleteMany({
+      where: { eventId },
+    });
+
+    await tx.event.delete({
+      where: { id: eventId },
+    });
+  });
+
+  await invalidateLeaderboardCache(eventId);
+
+  return {
+    message: 'Event deleted successfully',
+    eventId,
+  };
+};
+
 export const getAllUsers = async () => {
   const users = await prisma.user.findMany({
     select: {

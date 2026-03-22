@@ -43,12 +43,13 @@ curl -X POST http://localhost:3000/auth/register \
 ```bash
 curl "http://localhost:3000/auth/verify-email?token=YOUR_VERIFICATION_TOKEN"
 ```
+https://prody.nith.ac.in/api/auth/register
 
 ### Login (stores cookies in cookie jar)
 ```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}' \
+  -d '{"username":"username","password":"password123"}' \
   -c cookies.txt
 ```
 
@@ -123,7 +124,7 @@ curl http://localhost:3000/user/profile \
 
 ### List events
 ```bash
-curl http://localhost:3000/events
+curl https://prody.nith.ac.in/api/events
 ```
 
 ### Get event by ID
@@ -193,6 +194,12 @@ curl -X PATCH http://localhost:3000/events/EVENT_ID \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"title":"Updated Hackathon","isLive":false,"minTeamSize":3,"maxTeamSize":5}'
+```
+
+### Delete event (admin)
+```bash
+curl -X DELETE http://localhost:3000/admin/events/EVENT_ID \
+  -b cookies.txt
 ```
 
 ### Register for event (solo registration)

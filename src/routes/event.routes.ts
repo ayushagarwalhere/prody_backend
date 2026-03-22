@@ -20,7 +20,7 @@ router.get(
   eventController.getUserRegistrations,
 );
 router.get(
-  '/:id',
+  '/:eventId',
   validateRequest({ params: eventIdParamSchema.shape.params }),
   eventController.getEventById,
 );
@@ -34,7 +34,7 @@ router.post(
 );
 
 router.patch(
-  '/:id',
+  '/:eventId',
   authMiddleware,
   requireAdmin,
   validateRequest({ 
@@ -45,10 +45,10 @@ router.patch(
 );
 
 router.post(
-  '/:id/register',
+  '/:eventId/register',
   authMiddleware,
   validateRequest({
-    params: eventIdParamSchema.shape.params,
+    params: registerForEventSchema.shape.params,
     body: registerForEventSchema.shape.body,
   }),
   eventController.registerForEvent,

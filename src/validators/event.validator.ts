@@ -23,7 +23,7 @@ export const createEventSchema = z.object({
 
 export const eventIdParamSchema = z.object({
   params: z.object({
-    id: z.string().cuid(),
+    eventId: z.string().cuid(),
   }),
 });
 

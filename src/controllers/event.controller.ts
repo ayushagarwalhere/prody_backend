@@ -34,8 +34,8 @@ export const getEventById = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params as { id: string };
-    const event = await eventService.getEventById(id);
+    const { eventId } = req.params as { eventId: string };
+    const event = await eventService.getEventById(eventId);
     res.status(200).json(event);
   } catch (err) {
     next(err);
@@ -78,7 +78,7 @@ export const registerForEvent = async (
   next: NextFunction,
 ) => {
   try {
-    const { id: eventId } = req.params as { id: string };
+    const { eventId } = req.params as { eventId: string };
     const userId = req.user!.sub;
     const { teamId } = (req.body as { teamId?: string }) ?? {};
     const registration = await eventService.registerForEvent(
