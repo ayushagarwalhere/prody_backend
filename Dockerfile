@@ -3,8 +3,8 @@ FROM oven/bun:1 AS base
 WORKDIR /app
 
 # Install dependencies
-COPY package.json bun.lockb* ./
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
+COPY package.json bun.lock* ./
+RUN if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
 
 # Build stage
 FROM base AS builder
@@ -23,8 +23,8 @@ RUN addgroup --system --gid 1001 bun
 RUN adduser --system --uid 1001 bun
 
 # Copy production dependencies
-COPY package.json bun.lockb* ./
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile --production; else bun install --production; fi
+COPY package.json bun.lock* ./
+RUN if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile --production; else bun install --production; fi
 
 # Copy built application and Prisma files
 COPY --from=builder /app/dist ./dist
@@ -37,7 +37,7 @@ USER bun
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/events || exit 1
+  CMD bun -e "fetch('http://localhost:3000/events').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 EXPOSE 3000
 
@@ -45,5 +45,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Start the application
-CMD ["bun", "run", "start"]
-
+CMD ["sh", "-c", "bunx prisma migrate deploy && bun run start"]

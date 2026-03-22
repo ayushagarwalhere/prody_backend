@@ -38,14 +38,14 @@ export const editEvent = async (
   const updatedEvent = await prisma.event.update({
     where: { id: eventId },
     data: {
-      title: data.title,
-      description: data.description,
-      mode: data.mode,
-      abstract: data.abstract ?? null,
-      isLive: data.isLive,
-      minTeamSize: data.minTeamSize,
-      maxTeamSize: data.maxTeamSize,
-      prizePool: data.prizePool,
+      ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.mode !== undefined ? { mode: data.mode } : {}),
+      ...(data.abstract !== undefined ? { abstract: data.abstract } : {}),
+      ...(data.isLive !== undefined ? { isLive: data.isLive } : {}),
+      ...(data.minTeamSize !== undefined ? { minTeamSize: data.minTeamSize } : {}),
+      ...(data.maxTeamSize !== undefined ? { maxTeamSize: data.maxTeamSize } : {}),
+      ...(data.prizePool !== undefined ? { prizePool: data.prizePool } : {}),
     },
   });
 
