@@ -12,16 +12,20 @@ export const validateRequest =
   (req: Request, res: Response, next: NextFunction) => {
     try {
       if (schemas.body) {
-        req.body = schemas.body.parse(req.body);
+        const parsedBody = schemas.body.parse(req.body);
+        res.locals.body = parsedBody;
+        if (req.body && typeof req.body === 'object') {
+          Object.assign(req.body, parsedBody);
+        } else {
+          res.locals.body = parsedBody;
+        }
       }
       if (schemas.query) {
         const parsedQuery = schemas.query.parse(req.query);
-        req.query = parsedQuery;
         res.locals.query = parsedQuery;
       }
       if (schemas.params) {
         const parsedParams = schemas.params.parse(req.params);
-        req.params = parsedParams;
         res.locals.params = parsedParams;
       }
       next();
